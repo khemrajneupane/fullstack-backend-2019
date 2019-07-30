@@ -23,6 +23,9 @@ morgan.token("data", function(req, res) {
 
 app.use(morgan(":method :url :status :response-time ms :data"));
 
+/**using middle-ware for static file to run index.js from the front-end */
+app.use(express.static("build"));
+
 /**http://localhost:3001/api/persons */
 app.get("/api/persons/", function(req, res) {
   jsonfile
