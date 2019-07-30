@@ -101,16 +101,8 @@ app.post("/api/persons/", (req, res) => {
     jsonfile
       .readFile(filePath)
       .then(obj => {
-        const nameArr = obj.map(n => n.name === person.name);
-
-        if (nameArr.indexOf(true) < 0) {
-          jsonfile.writeFile(filePath, obj.concat(person));
-          res.send(obj.concat(person));
-        } else {
-          console.log("this name is already used");
-          jsonfile.writeFile(filePath, obj);
-          res.send(obj);
-        }
+        jsonfile.writeFile(filePath, obj.concat(person));
+        res.send(obj.concat(person));
       })
       .catch(error => {
         res.writeHead(200, { "Content-Type": "text/plain" });
@@ -134,19 +126,15 @@ app.put("/api/persons/:id", (req, res) => {
   jsonfile
     .readFile(filePath)
     .then(obj => {
-      const newArr = obj.filter(m => m.id !== person.id);
-      console.log(newArr);
+      const thisName = obj.filter(m => m.name === person.name);
+      const newArr = obj.filter(m => m.name !== person.name);
+
+      person.id = thisName[0].id;
+      console.log(person.id);
+      console.dir(person);
+
       jsonfile.writeFile(filePath, newArr.concat(person));
       res.send(newArr.concat(person));
-      /*  const namesArray = obj.filter(n => n.name !== person.name);
-      const nArray = obj.filter(n => n.name !== person.name);
-      //const numArray = obj.map(n => n.id === person.id);
-      console.log(nArray);
-      const matchingNames = nArray.filter(n => n.name === person.name);
-      console.log(matchingNames);
-      jsonfile.writeFile(filePath, namesArray.concat(person));
-      res.send(namesArray.concat(person));
-      */
     })
     .catch(error => {
       res.writeHead(200, { "Content-Type": "text/plain" });
