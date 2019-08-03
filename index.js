@@ -1,6 +1,9 @@
+/**Ex 3.13 to 3.18 */
 const express = require("express");
 const app = express();
+require("dotenv").config();
 const bodyParser = require("body-parser");
+const Phonebook = require("./models/phonebook");
 app.use(bodyParser.json());
 
 var jsonfile = require("jsonfile");
@@ -27,126 +30,116 @@ app.use(morgan(":method :url :status :response-time ms :data"));
 app.use(express.static("build"));
 
 /**http://localhost:3001/api/persons */
-app.get("/api/persons/", function(req, res) {
-  jsonfile
-    .readFile(filePath)
-    .then(obj => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end(JSON.stringify(obj));
+//after formatting the phonebookSchema, we make the main routing as follow:
+app.get("/api/persons", (request, response, next) => {
+  Phonebook.find({})
+    .then(values => {
+      response.json(values.map(value => value.toJSON()));
     })
-    .catch(() => {
-      res.writeHead(500, { "Content-Type": "text/plain" });
-      res.end();
-      console.error("Reading server side JSON file failed.");
+    .catch(error => next(error));
+});
+
+/**POST routing http://localhost:3001/api/persons */
+app.post("/api/persons/", (req, res, next) => {
+  const body = req.body;
+
+  const phonebook = new Phonebook({
+    name: body.name,
+    number: body.number
+  });
+  /*
+  if (body.name === "" || body.number === "") {
+    return res.status(400).json({ error: "name, number or both missing" });
+  }*/
+
+  phonebook
+    .save()
+    .then(savedPhonebook => {
+      res.json(savedPhonebook.toJSON());
+    })
+    .catch(error => {
+      console.log(error);
+      if (error.name === "ValidationError") {
+        res.status(400).send(error.message);
+      } else {
+        next(error);
+      }
     });
 });
 
+/**PUT routing http://localhost:3001/api/persons/:id */
+app.put("/api/persons/:id", (request, response, next) => {
+  const id = request.params.id;
+
+  const phonebook = {
+    name: request.body.name,
+    number: request.body.number
+  };
+  Phonebook.findByIdAndUpdate(id, phonebook)
+    .then(updatedPhonebook => {
+      response.json(updatedPhonebook.toJSON());
+    })
+    .catch(error => {
+      console.log(error);
+      if (error.name === "CastError") {
+        response.send(error.message);
+      } else {
+        next(error);
+      }
+    });
+});
+
+/**Delete routing http://localhost:3001/api/persons/:id */
+app.delete("/api/persons/:id", (req, res, next) => {
+  const id = req.params.id;
+
+  Phonebook.findByIdAndRemove(id)
+    .then(values => {
+      if (values) {
+        res.json(values.toJSON());
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch(error => {
+      if (error.name === "CastError" && error.path === "_id") {
+        res.send("invalid id");
+      } else {
+        next(error);
+      }
+    });
+});
+
+/**getby id routing http://localhost:3001/api/persons/:id */
+
+app.get("/api/persons/:id", (req, res, next) => {
+  Phonebook.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person.toJSON());
+      } else {
+        res.status(204).end();
+      }
+    })
+    .catch(error => {
+      if (error.name === "CastError" && error.path === "_id") {
+        res.send("invalid id");
+      } else {
+        next(error);
+      }
+    });
+});
 /**http://localhost:3001/info */
-app.get("/info", (req, res) => {
-  let date = new Date();
-  jsonfile
-    .readFile(filePath)
+app.get("/info", (req, res, next) => {
+  Phonebook.find({})
     .then(obj => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end(`Phonebook has info for ${obj.length} people
-${date}`);
+      let date = new Date();
+      res.send(`Phonebook has info for ${obj.length} people. <br />${date}`);
     })
-    .catch(error => {
-      res.writeHead(500, { "Content-Type": "text/plain" });
-      res.end(error);
-    });
+    .catch(error => next(error));
 });
 
-/**http://localhost:3001/persons/1 */
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  jsonfile
-    .readFile(filePath)
-    .then(obj => {
-      res.send(obj.find(person => person.id === id));
-    })
-
-    .catch(error => {
-      res.writeHead(500, { "Content-Type": "text/plain" });
-      res.end(error);
-    });
-});
-/**http://localhost:3001/persons/1 */
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  jsonfile
-    .readFile(filePath)
-    .then(obj => {
-      jsonfile.writeFile(filePath, obj.filter(person => person.id !== id));
-      res.send(obj.filter(person => person.id !== id));
-    })
-    .catch(error => {
-      res.writeHead(500, { "Content-Type": "text/plain" });
-      res.end(error);
-    });
-});
-
-/**http://localhost:3001/api/persons/*/
-app.post("/api/persons/", (req, res) => {
-  const generateId = () => {
-    const thiId = Math.floor(Math.random() * 500);
-    return thiId;
-  };
-
-  const body = req.body;
-  const person = {
-    name: body.name,
-    number: Number(body.number),
-    id: generateId()
-  };
-  if (person.name && person.number) {
-    jsonfile
-      .readFile(filePath)
-      .then(obj => {
-        jsonfile.writeFile(filePath, obj.concat(person));
-        res.send(obj.concat(person));
-      })
-      .catch(error => {
-        res.writeHead(200, { "Content-Type": "text/plain" });
-        console.dir(error);
-        res.end();
-      });
-  } else {
-    res.end();
-    console.log("name number errors");
-  }
-});
-/**put */
-app.put("/api/persons/:id", (req, res) => {
-  const body = req.body;
-
-  const person = {
-    name: body.name,
-    number: Number(body.number),
-    id: body.id
-  };
-  jsonfile
-    .readFile(filePath)
-    .then(obj => {
-      const thisName = obj.filter(m => m.name === person.name);
-      const newArr = obj.filter(m => m.name !== person.name);
-
-      person.id = thisName[0].id;
-      console.log(person.id);
-      console.dir(person);
-
-      jsonfile.writeFile(filePath, newArr.concat(person));
-      res.send(newArr.concat(person));
-    })
-    .catch(error => {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      console.dir(error);
-      res.end();
-    });
-});
-
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
