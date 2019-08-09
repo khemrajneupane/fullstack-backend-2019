@@ -29,14 +29,14 @@ const phonebook1 = new Phonebook({
 });
 
 phonebook.save().then(response => {
-  //   console.log("note saved!");
-  //console.log(response);
+  console.log("note saved!");
+  console.log(response);
   mongoose.connection.close();
 });
 
 phonebook1.save().then(response => {
-  //   console.log("note saved!");
-  //   console.log(response);
+  console.log("note saved!");
+  console.log(response);
   mongoose.connection.close();
 });
 
