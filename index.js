@@ -6,9 +6,9 @@ const bodyParser = require("body-parser");
 const Phonebook = require("./models/phonebook");
 app.use(bodyParser.json());
 
-var jsonfile = require("jsonfile");
+//var jsonfile = require("jsonfile");
 
-const filePath = __dirname + "/" + "persons.json";
+//const filePath = __dirname + "/" + "persons.json";
 
 const cors = require("cors");
 app.use(cors());
