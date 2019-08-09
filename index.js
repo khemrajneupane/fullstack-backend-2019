@@ -54,7 +54,7 @@ app.post("/api/persons/", (req, res, next) => {
       res.json(savedPhonebook.toJSON());
     })
     .catch(error => {
-      console.log(error);
+      //console.log(error);
       if (error.name === "ValidationError") {
         res.status(400).send(error.message);
       } else {
@@ -76,7 +76,7 @@ app.put("/api/persons/:id", (request, response, next) => {
       response.json(updatedPhonebook.toJSON());
     })
     .catch(error => {
-      console.log(error);
+      //console.log(error);
       if (error.name === "CastError") {
         response.send(error.message);
       } else {
