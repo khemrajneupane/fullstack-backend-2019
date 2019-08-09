@@ -47,10 +47,6 @@ app.post("/api/persons/", (req, res, next) => {
     name: body.name,
     number: body.number
   });
-  /*
-  if (body.name === "" || body.number === "") {
-    return res.status(400).json({ error: "name, number or both missing" });
-  }*/
 
   phonebook
     .save()
