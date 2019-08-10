@@ -1,3 +1,3 @@
 # fullstack-backend-2019
 
-https://fullstack-open-2019.herokuapp.com/
+https://fullstack2019backend.herokuapp.com/

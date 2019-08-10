@@ -1,141 +1,137 @@
-/**Ex 3.13 to 3.18 */
-const express = require("express");
-const app = express();
-require("dotenv").config();
-const bodyParser = require("body-parser");
-const Phonebook = require("./models/phonebook");
-app.use(bodyParser.json());
+/**Ex 3.13 to 3.18 **/
+const express = require('express')
+const app = express()
+require('dotenv').config()
+const bodyParser = require('body-parser')
+const Phonebook = require('./models/phonebook')
+app.use(bodyParser.json())
 
-//var jsonfile = require("jsonfile");
+const cors = require('cors')
+app.use(cors())
 
-//const filePath = __dirname + "/" + "persons.json";
+var morgan = require('morgan')
 
-const cors = require("cors");
-app.use(cors());
-
-var morgan = require("morgan");
-
-morgan.token("data", function(req, res) {
-  if (req.method === "DELETE") {
-    return JSON.stringify(req.params);
-  } else if (req.method === "POST") {
-    return JSON.stringify(req.body);
+morgan.token('data', function(req) {
+  if (req.method === 'DELETE') {
+    return JSON.stringify(req.params)
+  } else if (req.method === 'POST') {
+    return JSON.stringify(req.body)
   }
-  return;
-});
+  return
+})
 
-app.use(morgan(":method :url :status :response-time ms :data"));
+app.use(morgan(':method :url :status :response-time ms :data'))
 
-/**using middle-ware for static file to run index.js from the front-end */
-app.use(express.static("build"));
+//using middle-ware for static file to run index.js from the front-end
+app.use(express.static('build'))
 
 /**http://localhost:3001/api/persons */
-//after formatting the phonebookSchema, we make the main routing as follow:
-app.get("/api/persons", (request, response, next) => {
+
+app.get('/api/persons', (request, response, next) => {
   Phonebook.find({})
     .then(values => {
-      response.json(values.map(value => value.toJSON()));
+      response.json(values.map(value => value.toJSON()))
     })
-    .catch(error => next(error));
-});
+    .catch(error => next(error))
+})
 
 /**POST routing http://localhost:3001/api/persons */
-app.post("/api/persons/", (req, res, next) => {
-  const body = req.body;
+app.post('/api/persons/', (req, res, next) => {
+  const body = req.body
 
   const phonebook = new Phonebook({
     name: body.name,
     number: body.number
-  });
+  })
 
   phonebook
     .save()
     .then(savedPhonebook => {
-      res.json(savedPhonebook.toJSON());
+      res.json(savedPhonebook.toJSON())
     })
     .catch(error => {
-      //console.log(error);
-      if (error.name === "ValidationError") {
-        res.status(400).send(error.message);
+      if (error.name === 'ValidationError') {
+        console.log(error)
+        res.status(400).send(error.message)
       } else {
-        next(error);
+        next(error)
       }
-    });
-});
+    })
+})
 
 /**PUT routing http://localhost:3001/api/persons/:id */
-app.put("/api/persons/:id", (request, response, next) => {
-  const id = request.params.id;
+app.put('/api/persons/:id', (request, response, next) => {
+  const id = request.params.id
 
   const phonebook = {
     name: request.body.name,
     number: request.body.number
-  };
+  }
   Phonebook.findByIdAndUpdate(id, phonebook)
     .then(updatedPhonebook => {
-      response.json(updatedPhonebook.toJSON());
+      response.json(updatedPhonebook.toJSON())
     })
     .catch(error => {
       //console.log(error);
-      if (error.name === "CastError") {
-        response.send(error.message);
+      if (error.name === 'CastError') {
+        response.send(error.message)
       } else {
-        next(error);
+        next(error)
       }
-    });
-});
+    })
+})
 
 /**Delete routing http://localhost:3001/api/persons/:id */
-app.delete("/api/persons/:id", (req, res, next) => {
-  const id = req.params.id;
+app.delete('/api/persons/:id', (req, res, next) => {
+  const id = req.params.id
 
   Phonebook.findByIdAndRemove(id)
     .then(values => {
       if (values) {
-        res.json(values.toJSON());
+        res.json(values.toJSON())
       } else {
-        res.status(404).end();
+        res.status(404).end()
       }
     })
     .catch(error => {
-      if (error.name === "CastError" && error.path === "_id") {
-        res.send("invalid id");
+      if (error.name === 'CastError' && error.path === '_id') {
+        res.send('invalid id')
       } else {
-        next(error);
+        next(error)
       }
-    });
-});
+    })
+})
 
 /**getby id routing http://localhost:3001/api/persons/:id */
 
-app.get("/api/persons/:id", (req, res, next) => {
+app.get('/api/persons/:id', (req, res, next) => {
   Phonebook.findById(req.params.id)
     .then(person => {
       if (person) {
-        res.json(person.toJSON());
+        res.json(person.toJSON())
       } else {
-        res.status(204).end();
+        res.status(204).end()
       }
     })
     .catch(error => {
-      if (error.name === "CastError" && error.path === "_id") {
-        res.send("invalid id");
+      if (error.name === 'CastError' && error.path === '_id') {
+        res.send('invalid id')
       } else {
-        next(error);
+        next(error)
       }
-    });
-});
+    })
+})
 /**http://localhost:3001/info */
-app.get("/info", (req, res, next) => {
+app.get('/info', (req, res, next) => {
   Phonebook.find({})
     .then(obj => {
-      let date = new Date();
-      res.send(`Phonebook has info for ${obj.length} people. <br />${date}`);
+      let date = new Date()
+      res.send(`Phonebook has info for ${obj.length} people. <br />${date}`)
     })
-    .catch(error => next(error));
-});
+    .catch(error => next(error))
+})
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})
