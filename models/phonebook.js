@@ -1,8 +1,14 @@
 const mongoose = require('mongoose')
 var uniqueValidator = require('mongoose-unique-validator')
 mongoose.set('useFindAndModify', false) //remove deprecation warning while updating
-const url = process.env.MONGODB_URI
-console.log('connecting to', url)
+
+const dbPassword = process.env.MONGODBPWD
+const url = `mongodb+srv://fullstack:${dbPassword}@cluster0-v6fat.mongodb.net/phonebook?retryWrites=true&w=majority`
+
+if (!process.env.MONGODBPWD) {
+  throw 'DB password not supplied'
+}
+
 mongoose
   .connect(url, { useNewUrlParser: true })
   .then(() => {
