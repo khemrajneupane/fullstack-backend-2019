@@ -1,7 +1,7 @@
 /**Ex 3.13 to 3.18 **/
+require('dotenv').config()
 const express = require('express')
 const app = express()
-require('dotenv').config()
 const bodyParser = require('body-parser')
 const Phonebook = require('./models/phonebook')
 app.use(bodyParser.json())
